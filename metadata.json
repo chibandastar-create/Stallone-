@@ -1,0 +1,6 @@
+{
+  "name": "Cadence",
+  "description": "A reminder app for daily routines, monthly responsibilities, and yearly milestones with smart notifications and cloud sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

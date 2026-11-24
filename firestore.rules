@@ -1,0 +1,130 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global Safety Net: Default deny all reads and writes
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Reusable Hardened Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Reminder Schema Validation Blueprint
+    function isValidReminder(data, userId) {
+      return data.userId is string &&
+             data.userId == userId &&
+             data.title is string &&
+             data.title.size() >= 1 &&
+             data.title.size() <= 120 &&
+             data.notes is string &&
+             data.notes.size() <= 500 &&
+             data.cadence in ['DAILY', 'MONTHLY', 'YEARLY'] &&
+             data.category in ['PERSONAL', 'WORK', 'FINANCE', 'HEALTH', 'HOME', 'CELEBRATION'] &&
+             data.priority in ['NORMAL', 'HIGH'] &&
+             data.hour is int && data.hour >= 0 && data.hour <= 23 &&
+             data.minute is int && data.minute >= 0 && data.minute <= 59 &&
+             data.dayOfMonth is int && data.dayOfMonth >= 1 && data.dayOfMonth <= 31 &&
+             data.monthOfYear is int && data.monthOfYear >= 1 && data.monthOfYear <= 12 &&
+             data.year is int && data.year >= 2000 && data.year <= 2100 &&
+             data.recurring is bool &&
+             data.paused is bool &&
+             data.completedOnce is bool &&
+             data.lastCompletedCycleKey is string &&
+             data.lastCompletedCycleKey.size() <= 32 &&
+             data.completedCount is int && data.completedCount >= 0 && data.completedCount <= 1000000 &&
+             data.snoozedUntilEpochMs is int && data.snoozedUntilEpochMs >= 0;
+    }
+
+    function isCompleteOrSnoozeAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly([
+        'completedOnce',
+        'lastCompletedCycleKey',
+        'completedCount',
+        'snoozedUntilEpochMs',
+        'updatedAt'
+      ]);
+    }
+
+    function isPauseAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly([
+        'paused',
+        'updatedAt'
+      ]);
+    }
+
+    function isEditAction() {
+      return incoming().diff(existing()).affectedKeys().hasOnly([
+        'title',
+        'notes',
+        'cadence',
+        'category',
+        'priority',
+        'hour',
+        'minute',
+        'dayOfMonth',
+        'monthOfYear',
+        'year',
+        'recurring',
+        'paused',
+        'completedOnce',
+        'lastCompletedCycleKey',
+        'snoozedUntilEpochMs',
+        'updatedAt'
+      ]);
+    }
+
+    match /users/{userId}/reminders/{reminderId} {
+      allow get: if isOwner(userId) && isValidId(reminderId);
+      allow list: if isOwner(userId);
+
+      allow create: if isOwner(userId) &&
+                       isValidId(reminderId) &&
+                       incoming().keys().hasAll([
+                         'userId', 'title', 'notes', 'cadence', 'category', 'priority',
+                         'hour', 'minute', 'dayOfMonth', 'monthOfYear', 'year',
+                         'recurring', 'paused', 'completedOnce', 'lastCompletedCycleKey',
+                         'completedCount', 'snoozedUntilEpochMs', 'createdAt', 'updatedAt'
+                       ]) &&
+                       incoming().keys().hasOnly([
+                         'userId', 'title', 'notes', 'cadence', 'category', 'priority',
+                         'hour', 'minute', 'dayOfMonth', 'monthOfYear', 'year',
+                         'recurring', 'paused', 'completedOnce', 'lastCompletedCycleKey',
+                         'completedCount', 'snoozedUntilEpochMs', 'createdAt', 'updatedAt'
+                       ]) &&
+                       isValidReminder(incoming(), userId) &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time;
+
+      allow update: if isOwner(userId) &&
+                       isValidId(reminderId) &&
+                       isValidReminder(incoming(), userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt is timestamp &&
+                       incoming().updatedAt <= request.time &&
+                       (isCompleteOrSnoozeAction() || isPauseAction() || isEditAction());
+
+      allow delete: if isOwner(userId) && isValidId(reminderId);
+    }
+  }
+}

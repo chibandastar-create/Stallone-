@@ -1,0 +1,19 @@
+<resources>
+    <string name="app_name">Cadence</string>
+    <string name="tagline">Remember what matters across every day, month, and year.</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="sign_out">Sign out</string>
+    <string name="nav_focus">Focus</string>
+    <string name="nav_daily">Daily</string>
+    <string name="nav_monthly">Monthly</string>
+    <string name="nav_yearly">Yearly</string>
+    <string name="add_reminder">New reminder</string>
+    <string name="edit_reminder">Edit reminder</string>
+    <string name="search_reminders_hint">Search reminders or notes</string>
+    <string name="notification_channel_name">Scheduled Reminders</string>
+    <string name="notification_channel_description">Alerts for your daily, monthly, and yearly Cadence reminders.</string>
+    <string name="action_mark_done">Mark Done</string>
+    <string name="action_snooze_1h">Snooze 1h</string>
+    <string name="enable_notifications">Enable Notifications</string>
+    <string name="send_test_notification">Send Test Notification</string>
+</resources>

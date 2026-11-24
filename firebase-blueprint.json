@@ -1,0 +1,119 @@
+{
+  "entities": {
+    "Reminder": {
+      "title": "Reminder",
+      "description": "A user-owned reminder scheduled for a daily routine, monthly cycle, or yearly milestone.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Authenticated Firebase UID of the reminder owner."
+        },
+        "title": {
+          "type": "string",
+          "description": "Short title of the task or event to remember (1 to 120 characters)."
+        },
+        "notes": {
+          "type": "string",
+          "description": "Optional notes or checklist context (up to 500 characters)."
+        },
+        "cadence": {
+          "type": "string",
+          "enum": ["DAILY", "MONTHLY", "YEARLY"],
+          "description": "Recurrence/horizon cadence of the reminder."
+        },
+        "category": {
+          "type": "string",
+          "enum": ["PERSONAL", "WORK", "FINANCE", "HEALTH", "HOME", "CELEBRATION"],
+          "description": "Visual category tag for organizing reminders."
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["NORMAL", "HIGH"],
+          "description": "Priority level of the reminder."
+        },
+        "hour": {
+          "type": "integer",
+          "description": "Hour of day (0-23) when the reminder notifies."
+        },
+        "minute": {
+          "type": "integer",
+          "description": "Minute of hour (0-59) when the reminder notifies."
+        },
+        "dayOfMonth": {
+          "type": "integer",
+          "description": "Day of month (1-31) for MONTHLY and YEARLY reminders."
+        },
+        "monthOfYear": {
+          "type": "integer",
+          "description": "Month of year (1-12) for YEARLY reminders."
+        },
+        "year": {
+          "type": "integer",
+          "description": "Target or start year (2000-2100)."
+        },
+        "recurring": {
+          "type": "boolean",
+          "description": "Whether the reminder repeats automatically each cycle."
+        },
+        "paused": {
+          "type": "boolean",
+          "description": "Whether notifications and due status are paused."
+        },
+        "completedOnce": {
+          "type": "boolean",
+          "description": "Completion flag for non-recurring reminders."
+        },
+        "lastCompletedCycleKey": {
+          "type": "string",
+          "description": "Cycle key (YYYY-MM-DD, YYYY-MM, or YYYY) when last completed."
+        },
+        "completedCount": {
+          "type": "integer",
+          "description": "Total number of times the reminder has been completed."
+        },
+        "snoozedUntilEpochMs": {
+          "type": "integer",
+          "description": "Epoch milliseconds until snoozed, or 0 if not snoozed."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-assigned creation timestamp via FieldValue.serverTimestamp()."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server-assigned last update timestamp via FieldValue.serverTimestamp()."
+        }
+      },
+      "required": [
+        "userId",
+        "title",
+        "notes",
+        "cadence",
+        "category",
+        "priority",
+        "hour",
+        "minute",
+        "dayOfMonth",
+        "monthOfYear",
+        "year",
+        "recurring",
+        "paused",
+        "completedOnce",
+        "lastCompletedCycleKey",
+        "completedCount",
+        "snoozedUntilEpochMs",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}/reminders/{reminderId}": {
+      "schema": { "$ref": "#/entities/Reminder" },
+      "description": "Private daily, monthly, and yearly reminders owned by the authenticated user."
+    }
+  }
+}
