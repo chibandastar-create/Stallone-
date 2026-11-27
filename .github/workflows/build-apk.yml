@@ -15,6 +15,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Restore google-services.json from GitHub Secret
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ ! -f app/google-services.json ]; then
+            if [ -z "$GOOGLE_SERVICES_JSON" ]; then
+              echo "::error::Missing GOOGLE_SERVICES_JSON repository secret. Copy app/google-services.json from AI Studio and add it under GitHub Settings -> Secrets and variables -> Actions -> GOOGLE_SERVICES_JSON."
+              exit 1
+            fi
+            printf '%s' "$GOOGLE_SERVICES_JSON" > app/google-services.json
+          fi
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
