@@ -4,6 +4,9 @@ on:
   push:
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-apk:
     runs-on: ubuntu-latest
@@ -23,6 +26,12 @@ jobs:
         with:
           gradle-version: "9.3.1"
 
+      - name: Accept Android SDK licenses
+        run: |
+          if [ -d "$ANDROID_HOME/cmdline-tools/latest/bin" ]; then
+            yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          fi
+
       - name: Decode debug keystore
         run: |
           if [ -f debug.keystore.base64 ]; then
@@ -38,3 +47,11 @@ jobs:
           name: cadence-debug-apk
           path: app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Publish Debug APK to Latest Release
+        uses: softprops/action-gh-release@v2
+        continue-on-error: true
+        with:
+          tag_name: latest
+          name: Cadence Latest Debug APK
+          files: app/build/outputs/apk/debug/app-debug.apk
